@@ -1,51 +1,7 @@
-def get_type(s):
-    if (s[0] == '#'):
-        return 'id'
-    elif (s[0] == '.'):
-        return 'cls'
-    else:
-        return 'tag'
+import sys
 
 
-def normalize_cls(li):
-    newli = []
-    clsli = []
-    for i in range(len(li)):
-        atype = get_type(li[i])
-        if atype == 'cls':
-            clsli.append(li[i])
-        else:
-            newli.extend(sorted(clsli))
-            newli.append(li[i])
-            clsli = []
-
-    if len(clsli) > 0:
-        newli.extend(sorted(clsli))
-
-    return newli
-
-
-def parse(s):
-    s = s.strip()
-    li = []
-    p = 0
-    for i in range(len(s)):
-        if s[i] == ' ':
-            li.append(s[p:i])
-            p = i+1
-        elif s[i] in ['#', '.']:
-            li.append(s[p:i])
-            p = i
-
-    li.append(s[p:])
-
-    norm_li = normalize_cls(li)
-    # norm_li = li
-
-    return norm_li
-        
-
-def initialize_mat(x, y):
+def initialize_matrix(x, y):
     mat = []
     for i in range(len(y)+1):
         mat.append([i])
@@ -56,14 +12,58 @@ def initialize_mat(x, y):
     return mat
 
 
-def cal_min_score(mat, i, j, x, y):
+def get_type(s):
+    if (s[0] == '#'):
+        return 'id'
+    elif (s[0] == '.'):
+        return 'cls'
+    else:
+        return 'tag'
+
+
+def normalize_li(li):
+    """
+    Sort the class sections of each tag.
+    """
+    norm_li = []
+    temp_cls_li = []
+    for i in range(len(li)):
+        t = get_type(li[i])
+        if t == 'cls':
+            temp_cls_li.append(li[i])
+        else:
+            norm_li.extend(sorted(temp_cls_li))
+            norm_li.append(li[i])
+            temp_cls_li = []
+
+    if len(temp_cls_li) > 0:
+        norm_li.extend(sorted(temp_cls_li))
+
+    return norm_li
+
+
+def parse(s):
+    s = s.strip()
+    li = []
+    start_index = 0
+    for i in range(len(s)):
+        if s[i] == ' ':
+            li.append(s[start_index:i])
+            start_index = i+1
+        elif s[i] in ['#', '.']:
+            li.append(s[start_index:i])
+            start_index = i
+
+    li.append(s[start_index:])
+    norm_li = normalize_li(li)
+
+    return norm_li
+        
+
+def calculate_min_score(mat, i, j, x, y):
     old_diag_score = mat[i-1][j-1]
     old_right_score = mat[i][j-1]
     old_down_score = mat[i-1][j]
-
-    new_diag_score = 100
-    new_right_score = 100
-    new_down_score = 100
 
     xtype = get_type(x[j-1])
     ytype = get_type(y[i-1])
@@ -78,10 +78,8 @@ def cal_min_score(mat, i, j, x, y):
         else:
             new_diag_score = old_diag_score + 2
 
-
-        prevxtype = get_type(x[j-2])
-        # if (xtype == 'tag' or prevxtype == 'tag'):
-        if (prevxtype == 'tag'):
+        prev_xtype = get_type(x[j-2])
+        if (prev_xtype == 'tag'):
             new_right_score = old_right_score + 1
         else:
             new_right_score = old_right_score + 0
@@ -92,16 +90,18 @@ def cal_min_score(mat, i, j, x, y):
 
 
 def lev(x, y):
-    mat = initialize_mat(x, y)
+    mat = initialize_matrix(x, y)
 
     for i in range(1, len(y)+1):
         for j in range(1, len(x)+1):
-            min_score = cal_min_score(mat, i, j, x, y)
+            min_score = calculate_min_score(mat, i, j, x, y)
             mat[i].append(min_score)
 
-    # print(mat)
-    # print(mat[len(y)][len(x)])
     return mat[len(y)][len(x)]
+
+
+def get_edit_distance(init_dom, dest_dorm):
+    return lev(parse(init_dom), parse(dest_dorm))
 
 
 if __name__ == '__main__':
@@ -111,18 +111,12 @@ if __name__ == '__main__':
     # x = parse('div.header.footer a#signup')
     # y = parse('div.basic.footer.header a#signup')
 
-    x = parse('div.footer.fixed a#signup.blue.btn')
-    y = parse('div.header li.btn a#signup')
+    # x = parse('div.footer.fixed a#signup.blue.btn')
+    # y = parse('div.header li.btn a#signup')
 
-    with open('testcases.txt', 'r') as f:
+    with open(sys.argv[1], 'r') as f:
         lines = f.readlines()
-        x = []
-        y = []
-        for i in range(len(lines)):
-            if i % 3 == 0:
-                x = parse(lines[i])
-            elif i % 3 == 1:
-                y = parse(lines[i])
-            else:
-                score = lev(x, y)
-                print("{} - {}".format(score, lines[i]))
+        for i in range(2, len(lines), 3):
+            score = get_edit_distance(lines[i-2], lines[i-1])
+            print("{} - {}".format(score, lines[i]))
+
