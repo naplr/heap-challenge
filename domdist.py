@@ -77,7 +77,15 @@ def cal_min_score(mat, i, j, x, y):
             new_diag_score = old_diag_score + 1
         else:
             new_diag_score = old_diag_score + 2
-        new_right_score = old_right_score + 1
+
+
+        prevxtype = get_type(x[j-2])
+        # if (xtype == 'tag' or prevxtype == 'tag'):
+        if (prevxtype == 'tag'):
+            new_right_score = old_right_score + 1
+        else:
+            new_right_score = old_right_score + 0
+            
         new_down_score = old_down_score + 1
 
     return min(new_diag_score, new_right_score, new_down_score)
@@ -91,28 +99,30 @@ def lev(x, y):
             min_score = cal_min_score(mat, i, j, x, y)
             mat[i].append(min_score)
 
-    print(mat)
-    print(mat[len(y)][len(x)])
+    # print(mat)
+    # print(mat[len(y)][len(x)])
+    return mat[len(y)][len(x)]
 
 
 if __name__ == '__main__':
-    x = parse('div.green.dotted a#login')
-    y = parse('a#login div.green.dotted')
+    # x = parse('div.green.dotted a#login')
+    # y = parse('a#login div.green.dotted')
 
     # x = parse('div.header.footer a#signup')
     # y = parse('div.basic.footer.header a#signup')
 
-    # x = parse('div.footer.fixed a#signup.blue.btn')
-    # y = parse('div.header li.btn a#signup')
+    x = parse('div.footer.fixed a#signup.blue.btn')
+    y = parse('div.header li.btn a#signup')
 
-    print(x)
-    print(y)
-
-    # x = 'abcdef'
-    # y = 'akced'
-    lev(x, y)
-
-
-
-
-
+    with open('testcases.txt', 'r') as f:
+        lines = f.readlines()
+        x = []
+        y = []
+        for i in range(len(lines)):
+            if i % 3 == 0:
+                x = parse(lines[i])
+            elif i % 3 == 1:
+                y = parse(lines[i])
+            else:
+                score = lev(x, y)
+                print("{} - {}".format(score, lines[i]))
