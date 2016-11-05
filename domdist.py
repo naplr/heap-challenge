@@ -2,17 +2,6 @@ import sys
 import math
 
 
-def _initialize_matrix(x, y):
-    mat = []
-    for i in range(len(y)+1):
-        mat.append([i])
-
-    for i in range(1, len(x)+1):
-        mat[0].append(i)
-
-    return mat
-
-
 def _get_type(s):
     if (s[0] == '#'):
         return 'id'
@@ -20,6 +9,19 @@ def _get_type(s):
         return 'cls'
     else:
         return 'tag'
+
+
+def _initialize_matrix(x, y):
+    mat = []
+    for i in range(len(y)+1):
+        mat.append([i])
+
+    val = 0
+    for i in range(len(x)):
+        val += (1 if _get_type(x[i]) == 'tag' else 0)
+        mat[0].append(val)
+
+    return mat
 
 
 def _normalize_li(li):
@@ -77,14 +79,16 @@ def _calculate_min_score(mat, i, j, x, y):
         if (xtype == 'tag' and ytype == 'tag'):
             new_diag_score = old_diag_score + 1
         else:
-            new_diag_score = old_diag_score + 2
+            # This is an illegal move because you can only 'change' tag
+            new_diag_score = sys.maxsize
 
-        prev_xtype = _get_type(x[j-2])
-        if (prev_xtype == 'tag'):
-            new_right_score = old_right_score + 1
-        else:
-            new_right_score = old_right_score + 0
+        # prev_xtype = _get_type(x[j-2])
+        # if (prev_xtype == 'tag'):
+            # new_right_score = old_right_score + 1
+        # else:
+            # new_right_score = old_right_score + 0
 
+        new_right_score = old_right_score + 1
         new_down_score = old_down_score + 1
 
     return min(new_diag_score, new_right_score, new_down_score)
@@ -113,13 +117,13 @@ if __name__ == '__main__':
     y = _parse('a#login div.green.dotted')
     print(_lev(x,y))
 
-    x = _parse('div.header.footer a#signup')
-    y = _parse('div.basic.footer.header a#signup')
-    print(_lev(x,y))
+    # x = _parse('div.header.footer a#signup')
+    # y = _parse('div.basic.footer.header a#signup')
+    # print(_lev(x,y))
 
-    x = _parse('div.footer.fixed a#signup.blue.btn')
-    y = _parse('div.header li.btn a#signup')
-    print(_lev(x,y))
+    # x = _parse('div.footer.fixed a#signup.blue.btn')
+    # y = _parse('div.header li.btn a#signup')
+    # print(_lev(x,y))
 
     total_diff = 0
     with open(sys.argv[1], 'r') as f:
@@ -127,7 +131,7 @@ if __name__ == '__main__':
         for i in range(2, len(lines), 3):
             score = get_edit_distance(lines[i-2], lines[i-1])
             diff = math.fabs(score - int(lines[i]))
-            print("{} - {} == {}".format(score, lines[i], diff))
+            print("{} - {} == {}".format(score, lines[i].strip(), diff))
 
             total_diff += diff
 
