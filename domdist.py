@@ -2,6 +2,12 @@ import sys
 import math
 
 
+class Node:
+    def __init__(self, value, is_from_deleted_tag):
+        self.value = value
+        self.is_from_deleted_tag = is_from_deleted_tag
+    
+
 def _get_type(s):
     if (s[0] == '#'):
         return 'id'
@@ -14,12 +20,12 @@ def _get_type(s):
 def _initialize_matrix(x, y):
     mat = []
     for i in range(len(y)+1):
-        mat.append([i])
+        mat.append([Node(i, False)])
 
     val = 0
     for i in range(len(x)):
         val += (1 if _get_type(x[i]) == 'tag' else 0)
-        mat[0].append(val)
+        mat[0].append(Node(val, False))
 
     return mat
 
@@ -48,6 +54,7 @@ def _normalize_li(li):
 def _parse(s):
     s = s.strip()
     li = []
+
     start_index = 0
     for i in range(len(s)):
         if s[i] == ' ':
@@ -64,9 +71,9 @@ def _parse(s):
         
 
 def _calculate_min_score(mat, i, j, x, y):
-    old_diag_score = mat[i-1][j-1]
-    old_right_score = mat[i][j-1]
-    old_down_score = mat[i-1][j]
+    old_diag_score = mat[i-1][j-1].value
+    old_right_score = mat[i][j-1].value
+    old_down_score = mat[i-1][j].value
 
     xtype = _get_type(x[j-1])
     ytype = _get_type(y[i-1])
@@ -91,8 +98,9 @@ def _calculate_min_score(mat, i, j, x, y):
         new_right_score = old_right_score + 1
         new_down_score = old_down_score + 1
 
-    return min(new_diag_score, new_right_score, new_down_score)
+    node = Node(min(new_diag_score, new_right_score, new_down_score), False)
 
+    return node
 
 def _lev(x, y):
     """
@@ -102,10 +110,9 @@ def _lev(x, y):
 
     for i in range(1, len(y)+1):
         for j in range(1, len(x)+1):
-            min_score = _calculate_min_score(mat, i, j, x, y)
-            mat[i].append(min_score)
+            mat[i].append(_calculate_min_score(mat, i, j, x, y))
 
-    return mat[len(y)][len(x)]
+    return mat[len(y)][len(x)].value
 
 
 def get_edit_distance(init_dom, dest_dorm):
