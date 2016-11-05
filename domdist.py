@@ -8,7 +8,7 @@ class Node:
         self.is_from_deleted_tag = is_from_deleted_tag
 
     def __repr__(self):
-        return "[value: {} , is_from: {}]".format(self.value, self.is_from_deleted_tag)
+        return "[{}, {}]".format(self.value, self.is_from_deleted_tag)
 
 
 def _get_type(s):
@@ -86,15 +86,15 @@ def _calculate_min_score(mat, i, j, x, y):
 
     if x[j-1] == y[i-1]:
         new_diag_score = old_diag_score 
-        new_right_score = old_right_score 
-        new_down_score = old_down_score 
+        new_right_score = old_right_score + 1
+        new_down_score = old_down_score + 1
     else:
         if (xtype == 'tag' and ytype == 'tag'):
             new_diag_score = old_diag_score + 1
         else:
             # This is an illegal move because you can only 'change' tag
             new_diag_score = sys.maxsize
-        if (old_right_node.is_from_deleted_tag):
+        if (old_right_node.is_from_deleted_tag and xtype != 'tag'):
             new_right_score = old_right_score
         else:
             new_right_score = old_right_score + 1
@@ -125,6 +125,19 @@ def _lev(x, y):
             mat[i].append(_calculate_min_score(mat, i, j, x, y))
 
     return mat[len(y)][len(x)].value
+
+
+def _lev_mat(x, y):
+    """
+    Use modified Levenshetein distance algorithm to find the minimum edit.
+    """
+    mat = _initialize_matrix(x, y)
+
+    for i in range(1, len(y)+1):
+        for j in range(1, len(x)+1):
+            mat[i].append(_calculate_min_score(mat, i, j, x, y))
+
+    return mat
 
 
 def get_edit_distance(init_dom, dest_dorm):
@@ -160,19 +173,33 @@ if __name__ == '__main__':
     #6
     print(get_edit_distance('a#enter', 'a#enter.knob.green a#enter a#enter'))
 
-    # total_diff = 0
-    # total_wrong = 0
-    # with open(sys.argv[1], 'r') as f:
-        # lines = f.readlines()
-        # for i in range(2, len(lines), 3):
-            # score = get_edit_distance(lines[i-2], lines[i-1])
-            # diff = math.fabs(score - int(lines[i]))
-            # print("{} - {} == {}".format(score, lines[i].strip(), diff))
+    #8
+    print(get_edit_distance('header.cf.header div.nav-bar div.lc form.search-form fieldset input.search-field', 'header.cf.header div.nav-bar div.lc div.header-social ul.inline-list.social-list.sprite-social'))
 
-            # total_diff += diff
-            # if diff != 0:
-                # total_wrong += 1
+    #4
+    print(get_edit_distance('div#id span.text a#link.btn', 'a#id.btn'))
+    mat = _lev_mat(_parse('div#id span.text a#link.btn'), _parse('a#id.btn'))
 
-    # print("total diff: {}".format(total_diff))
-    # print("total wrong: {}".format(total_wrong))
+    for x in mat:
+        for y in x:
+            print(y)
+            # print('\n')
+        print("===================\n")
+
+
+    total_diff = 0
+    total_wrong = 0
+    with open(sys.argv[1], 'r') as f:
+        lines = f.readlines()
+        for i in range(2, len(lines), 3):
+            score = get_edit_distance(lines[i-2], lines[i-1])
+            diff = math.fabs(score - int(lines[i]))
+            print("{} - {} == {}".format(score, lines[i].strip(), diff))
+
+            total_diff += diff
+            if diff != 0:
+                total_wrong += 1
+
+    print("total diff: {}".format(total_diff))
+    print("total wrong: {}".format(total_wrong))
 
