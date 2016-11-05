@@ -126,6 +126,7 @@ if __name__ == '__main__':
     # print(_lev(x,y))
 
     total_diff = 0
+    total_wrong = 0
     with open(sys.argv[1], 'r') as f:
         lines = f.readlines()
         for i in range(2, len(lines), 3):
@@ -134,6 +135,9 @@ if __name__ == '__main__':
             print("{} - {} == {}".format(score, lines[i].strip(), diff))
 
             total_diff += diff
+            if diff != 0:
+                total_wrong += 1
 
     print("total diff: {}".format(total_diff))
+    print("total wrong: {}".format(total_wrong))
 
