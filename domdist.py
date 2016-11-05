@@ -107,7 +107,7 @@ def _calculate_min_score(mat, i, j, x, y):
     # print(new_diag_score, new_right_score, new_down_score)
     
     prev_xtype = _get_type(x[j-2])
-    if min_val == new_right_score and (xtype == 'tag' or old_right_node.is_from_deleted_tag):
+    if min_val == new_right_score and (xtype == 'tag' or old_right_node.is_from_deleted_tag) and not (x[j-1] == y[i-1]):
         is_from_deleted_tag = True
 
     node = Node(min_val, is_from_deleted_tag)
@@ -134,7 +134,7 @@ def get_edit_distance(init_dom, dest_dorm):
 if __name__ == '__main__':
     x = _parse('div.green.dotted a#login')
     y = _parse('a#login div.green.dotted')
-    # print(_lev(x,y))
+    print(_lev(x,y))
     # mat = _lev(x, y)
 
     # for x in mat:
@@ -151,19 +151,28 @@ if __name__ == '__main__':
     y = _parse('div.header li.btn a#signup')
     print(_lev(x,y))
 
-    total_diff = 0
-    total_wrong = 0
-    with open(sys.argv[1], 'r') as f:
-        lines = f.readlines()
-        for i in range(2, len(lines), 3):
-            score = get_edit_distance(lines[i-2], lines[i-1])
-            diff = math.fabs(score - int(lines[i]))
-            print("{} - {} == {}".format(score, lines[i].strip(), diff))
+    #6
+    print(get_edit_distance('a#enter', 'a#enter.knob.green a#enter a#enter'))
 
-            total_diff += diff
-            if diff != 0:
-                total_wrong += 1
+    #4
+    print(get_edit_distance('a#enter.knob.green', 'a#enter.knob.green a#enter a#enter'))
 
-    print("total diff: {}".format(total_diff))
-    print("total wrong: {}".format(total_wrong))
+    #6
+    print(get_edit_distance('a#enter', 'a#enter.knob.green a#enter a#enter'))
+
+    # total_diff = 0
+    # total_wrong = 0
+    # with open(sys.argv[1], 'r') as f:
+        # lines = f.readlines()
+        # for i in range(2, len(lines), 3):
+            # score = get_edit_distance(lines[i-2], lines[i-1])
+            # diff = math.fabs(score - int(lines[i]))
+            # print("{} - {} == {}".format(score, lines[i].strip(), diff))
+
+            # total_diff += diff
+            # if diff != 0:
+                # total_wrong += 1
+
+    # print("total diff: {}".format(total_diff))
+    # print("total wrong: {}".format(total_wrong))
 
