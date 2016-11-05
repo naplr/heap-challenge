@@ -6,6 +6,7 @@ class Node:
     def __init__(self, value, is_from_deleted_tag):
         self.value = value
         self.is_from_deleted_tag = is_from_deleted_tag
+        self.deleted_tag_value = sys.maxsize
 
     def __repr__(self):
         return "[{}, {}]".format(self.value, self.is_from_deleted_tag)
@@ -94,8 +95,13 @@ def _calculate_min_score(mat, i, j, x, y):
         else:
             # This is an illegal move because you can only 'change' tag
             new_diag_score = sys.maxsize
-        if (old_right_node.is_from_deleted_tag and xtype != 'tag'):
-            new_right_score = old_right_score
+
+        next_xtype = _get_type(x[j]) if j < len(x) else 'tag'
+        if (old_right_node.is_from_deleted_tag and xtype != 'tag' and next_xtype == 'tag'):
+            new_right_score = old_right_node.deleted_tag_value
+
+        # if (old_right_node.is_from_deleted_tag and xtype != 'tag'):
+            # new_right_score = old_right_score
         else:
             new_right_score = old_right_score + 1
 
@@ -103,14 +109,18 @@ def _calculate_min_score(mat, i, j, x, y):
 
     # Get the new node. If it is from deleted tag, set the flag to True.
     min_val = min(new_diag_score, new_right_score, new_down_score)
-    # print(old_right_node)
-    # print(new_diag_score, new_right_score, new_down_score)
+
+    node = Node(min_val, is_from_deleted_tag)
     
     prev_xtype = _get_type(x[j-2])
     if min_val == new_right_score and (xtype == 'tag' or old_right_node.is_from_deleted_tag) and not (x[j-1] == y[i-1]):
         is_from_deleted_tag = True
+        node.is_from_deleted_tag = True
 
-    node = Node(min_val, is_from_deleted_tag)
+        if xtype == 'tag':
+            node.deleted_tag_value = min_val
+        else:
+            node.deleted_tag_value = old_right_node.deleted_tag_value
 
     return node
 
