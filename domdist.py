@@ -6,7 +6,10 @@ class Node:
     def __init__(self, value, is_from_deleted_tag):
         self.value = value
         self.is_from_deleted_tag = is_from_deleted_tag
-    
+
+    def __repr__(self):
+        return "[value: {} , is_from: {}]".format(self.value, self.is_from_deleted_tag)
+
 
 def _get_type(s):
     if (s[0] == '#'):
@@ -25,7 +28,7 @@ def _initialize_matrix(x, y):
     val = 0
     for i in range(len(x)):
         val += (1 if _get_type(x[i]) == 'tag' else 0)
-        mat[0].append(Node(val, False))
+        mat[0].append(Node(val, True))
 
     return mat
 
@@ -71,9 +74,12 @@ def _parse(s):
         
 
 def _calculate_min_score(mat, i, j, x, y):
+    is_from_deleted_tag = False
     old_diag_score = mat[i-1][j-1].value
     old_right_score = mat[i][j-1].value
     old_down_score = mat[i-1][j].value
+
+    old_right_node = mat[i][j-1]
 
     xtype = _get_type(x[j-1])
     ytype = _get_type(y[i-1])
@@ -88,17 +94,23 @@ def _calculate_min_score(mat, i, j, x, y):
         else:
             # This is an illegal move because you can only 'change' tag
             new_diag_score = sys.maxsize
+        if (old_right_node.is_from_deleted_tag):
+            new_right_score = old_right_score
+        else:
+            new_right_score = old_right_score + 1
 
-        # prev_xtype = _get_type(x[j-2])
-        # if (prev_xtype == 'tag'):
-            # new_right_score = old_right_score + 1
-        # else:
-            # new_right_score = old_right_score + 0
-
-        new_right_score = old_right_score + 1
         new_down_score = old_down_score + 1
 
-    node = Node(min(new_diag_score, new_right_score, new_down_score), False)
+    # Get the new node. If it is from deleted tag, set the flag to True.
+    min_val = min(new_diag_score, new_right_score, new_down_score)
+    # print(old_right_node)
+    # print(new_diag_score, new_right_score, new_down_score)
+    
+    prev_xtype = _get_type(x[j-2])
+    if min_val == new_right_score and (xtype == 'tag' or old_right_node.is_from_deleted_tag):
+        is_from_deleted_tag = True
+
+    node = Node(min_val, is_from_deleted_tag)
 
     return node
 
@@ -122,15 +134,22 @@ def get_edit_distance(init_dom, dest_dorm):
 if __name__ == '__main__':
     x = _parse('div.green.dotted a#login')
     y = _parse('a#login div.green.dotted')
+    # print(_lev(x,y))
+    # mat = _lev(x, y)
+
+    # for x in mat:
+        # for y in x:
+            # print(y)
+            # print('\n')
+        # print("===================\n")
+
+    x = _parse('div.header.footer a#signup')
+    y = _parse('div.basic.footer.header a#signup')
     print(_lev(x,y))
 
-    # x = _parse('div.header.footer a#signup')
-    # y = _parse('div.basic.footer.header a#signup')
-    # print(_lev(x,y))
-
-    # x = _parse('div.footer.fixed a#signup.blue.btn')
-    # y = _parse('div.header li.btn a#signup')
-    # print(_lev(x,y))
+    x = _parse('div.footer.fixed a#signup.blue.btn')
+    y = _parse('div.header li.btn a#signup')
+    print(_lev(x,y))
 
     total_diff = 0
     total_wrong = 0
