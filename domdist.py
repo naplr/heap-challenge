@@ -21,8 +21,12 @@ def _is_last_elem_in_tag_deletion(left_node, x, index):
 
 
 def _generate_new_node(mat, i, j, x, y):
-    old_diag_score = mat[i-1][j-1].value
-    old_right_score = mat[i][j-1].value
+    old_diag_node = mat[i-1][j-1]
+    old_left_node = mat[i][j-1]
+    old_up_node = mat[i-1][j]
+
+    old_diag_score = old_diag_node.value
+    old_right_score = old_left_node.value
     old_down_score = mat[i-1][j].value
 
     xtype = get_type(x[j-1])
@@ -30,8 +34,11 @@ def _generate_new_node(mat, i, j, x, y):
 
     # Calculate new_diag_score
     if x[j-1] == y[i-1]:
-        new_diag_score = old_diag_score
-    elif (xtype == 'tag' and ytype == 'tag'):
+        if (xtype == TAG) or (old_diag_node.is_from_diag_tag):
+            new_diag_score = old_diag_score
+        else:
+            new_diag_score = old_diag_score + 1
+    elif (xtype == TAG and ytype == TAG):
         new_diag_score = old_diag_score + 1
     else:
         # This is an illegal move because you can only 'change' tag
@@ -41,7 +48,6 @@ def _generate_new_node(mat, i, j, x, y):
     new_down_score = old_down_score + 1
 
     # Calculate new_right_score
-    old_left_node = mat[i][j-1]
     if(_is_last_elem_in_tag_deletion(old_left_node, x, j)):
         new_right_score = old_left_node.deleted_tag_value
     else:
@@ -58,6 +64,13 @@ def _generate_new_node(mat, i, j, x, y):
     else:
         node = Node(min_val, False)
 
+    # This handle the case when the classes/ID is split
+    if min_val == new_right_score:
+        node.is_from_diag_tag = xtype != TAG and old_left_node.is_from_diag_tag
+    elif min_val == new_diag_score:
+        node.is_from_diag_tag = xtype == TAG or old_diag_node.is_from_diag_tag
+    elif min_val == new_down_score:
+        node.is_from_diag_tag = ytype != TAG and old_up_node.is_from_diag_tag
 
     # For debugging purpose.
     if min_val == new_right_score:
@@ -134,7 +147,9 @@ if __name__ == '__main__':
     print(get_edit_distance('header.cf.header div.nav-bar div.lc form.search-form fieldset input.search-field', 'header.cf.header div.nav-bar div.lc div.header-social ul.inline-list.social-list.sprite-social')) # ans = 8
     print(get_edit_distance('div#id span.text a#link.btn', 'a#id.btn')) # ans = 4
 
-    print(debug_get_edit_distance('a#id.btn', 'div#id span.text a#link.btn')) # ans = 6
+    # print(debug_get_edit_distance('a#id.btn', 'div#id span.text a#link.btn')) # ans = 6
+    # print(debug_get_edit_distance('div#id.btn', 'a#id a.btn')) # ans = 6
+    print(debug_get_edit_distance('div#id.btn.blue', 'div.blue.btn')) # ans = 3
 
     # x = ' div div#cnn_maincntnr div.cnn_contentarea.cnn_shdcamtt12010.cnn_shdcamtt1l250.cnn_t1lo_bnews.cnn_t1lo_refresh div#cnn_maintopt1 div#cnn_maintoplive div.cnn_mc2cntr div.cnn_mc23x1cnntr div#cnn_mc2_large1.cnn_mc2_img_right.cnn_mc2_large div div.cnn_mc2_text_left div.cnn_mc2_blurb a'
     # y = ' div div#cnn_maincntnr div.cnn_contentarea.cnn_shdcamtt12010.cnn_shdcamtt1l250.cnn_t1lo_bnews.cnn_t1lo_refresh div#cnn_maintopprofile div#on_tv.cnn_hppersonal div#cnn_pmtvmodule div.cnn_hppersonalfeature div.cnn_pmtvmodddown.cnn_tsbnav form select'

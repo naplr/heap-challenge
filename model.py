@@ -13,5 +13,7 @@ class Node:
         self.i = None
         self.j = None
 
+        self.is_from_diag_tag = False
+
     def __repr__(self):
-        return "[({},{}) {}, {}, {}, {}, {}]".format(self.i, self.j, self.value, self.is_from_deleted_tag, self.direction, self.x, self.y)
+        return "[({},{}) {}, {}, {}, {}, {}, {}]".format(self.i, self.j, self.value, self.is_from_deleted_tag, self.direction, self.x, self.y, self.is_from_diag_tag)
